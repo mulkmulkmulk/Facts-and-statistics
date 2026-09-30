@@ -1,0 +1,68 @@
+# Daily rebuild of the static site: fetch new ewgf stats + Wavu matches, rebuild data/*.json, deploy Pages.
+# Running state (matchup totals, cursor) lives in the "data-state" release's assets, not in git history.
+name: Daily data update
+
+on:
+  schedule:
+    - cron: '17 4 * * *' # 04:17 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: write # update the data-state release
+  pages: write
+  id-token: write
+  actions: write # re-enable this workflow so GitHub doesn't pause the schedule on quiet repos
+
+concurrency:
+  group: daily-data
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Download state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p state
+          gh release download data-state --dir state --pattern '*' || echo "No saved state yet; starting fresh."
+
+      - name: Fetch new data
+        run: node scripts/build-data.js update
+
+      - name: Build site
+        run: node scripts/build-data.js site
+
+      - name: Save state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view data-state >/dev/null 2>&1 || \
+            gh release create data-state --prerelease --title "Data state (automated)" \
+              --notes "Running state for the daily site build. Not a software release."
+          gh release upload data-state state/* --clobber
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+      - name: Keep the schedule alive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow enable daily.yml

@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tekken 8 - Facts and statistics</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>Tekken 8 - Facts and statistics</h1>
+      <p class="sub">Tier lists from real ranked data, not opinions.</p>
+    </div>
+    <div class="sources">
+      <div class="src"><span class="src-name">ewgf.gg</span><span id="srcEwgf">loading…</span>
+        <button id="refresh" class="icon-btn" type="button" title="Fetch fresh stats from ewgf.gg now">↻</button></div>
+      <div class="src"><span class="src-name">Matchups</span><span id="srcMu">loading…</span></div>
+    </div>
+  </header>
+
+  <nav class="tabbar">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="explore">Explorer</button>
+      <button type="button" role="tab" data-tab="best">Best estimate</button>
+    </div>
+    <label class="explain-toggle"><input type="checkbox" id="explain" /> Explain methods</label>
+  </nav>
+
+  <!-- ================= Best estimate ================= -->
+  <section id="tab-best" class="tab-panel">
+    <div class="model-bar">
+      <span class="model-label">Model</span>
+      <div class="seg model-seg" role="radiogroup" aria-label="Model">
+        <button type="button" data-model="meta" role="radio">Meta signals</button>
+        <button type="button" data-model="consensus" role="radio">Matchup consensus</button>
+      </div>
+    </div>
+
+    <div class="intro" data-for="meta">
+      <h2>Who wins, and who the best players choose</h2>
+      <p class="lead">Tekken rates every character separately and matches equal ratings, so win rates get squeezed toward 50%.
+        Character strength also shows in <i>who ends up at the top</i>. This model combines three signals from every ranked match on ewgf.gg.</p>
+      <div class="more">
+        <ol class="steps">
+          <li><b>Top win rate</b>: win rate at the top ranks, pulled toward average by 500 pseudo-games so small samples can't swing it.
+            Direct performance, but compressed by matchmaking.</li>
+          <li><b>Top pick rate</b>: share of top-rank games. What the best players choose when they play to win.
+            On its own this is also plain popularity: everyone plays Jin and Kazuya.</li>
+          <li><b>Climb lift</b>: the character's share at the top divided by its share at mid ranks (Garyu – Bushin).
+            A character that carries players upward is over-represented at the top, whatever its general popularity.
+            Mid ranks, not all ranks, so beginner-friendly picks aren't penalized for having many new players.</li>
+        </ol>
+        <p><b>Combining:</b> each signal becomes a <a href="https://en.wikipedia.org/wiki/Standard_score" target="_blank" rel="noopener">z-score ↗</a>
+          and they're averaged with weights 1 : 1 : 0.75 (win : pick : lift). Lift is weighted slightly lower because that setting
+          reproduced best between independent regions. Weights weren't tuned toward any expected ranking. Each signal covers another's blind spot:
+          lift cancels popularity in pick rate, and win rate checks that popular picks actually perform.</p>
+        <p><b>Trust:</b> the same model is re-run on independent slices (Asia, Americas, Europe, other regions, previous patch).
+          "Regions agree" is the <a href="https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient" target="_blank" rel="noopener">rank correlation ↗</a>
+          between Americas and the rest of the world (1 = same order). A character's rank range is how far it moves between slices.</p>
+      </div>
+    </div>
+
+    <div class="intro" data-for="consensus" hidden>
+      <h2>Matchup consensus</h2>
+      <p class="lead">Three views of strength from the head-to-head matchup chart, taken from the highest ranks that have enough data, then combined.
+        Tiers split where the scores jump.</p>
+      <div class="more">
+        <ol class="steps">
+          <li><b>Practical strength</b>: win rate against the opponents people actually play. Answers "what wins in today's meta".
+            Includes a rarity edge: people play worse against characters they rarely see.</li>
+          <li><b>Intrinsic strength</b>: the average of all head-to-head win rates, every opponent counted equally.
+            Removes the meta and tells how good the character's matchups are in general.
+            <a href="https://en.wikipedia.org/wiki/Round-robin_tournament" target="_blank" rel="noopener">Round-robin ↗</a></li>
+          <li><b>Competitive strength</b>: the matchup chart treated as a zero-sum game (payoff = win rate − 50%). Its
+            <a href="https://en.wikipedia.org/wiki/Nash_equilibrium" target="_blank" rel="noopener">Nash equilibrium ↗</a>
+            is the pick mix nobody can counter. Score = win rate against that mix.</li>
+        </ol>
+        <p><b>Cleaning:</b> only high ranks. Every matchup is pulled toward 50% by <i>k</i> pseudo-games
+          (<a href="https://en.wikipedia.org/wiki/Empirical_Bayes_method" target="_blank" rel="noopener">Bayesian shrinkage ↗</a>).
+          Each player's side of a match is pooled with the opponent's so rank filtering doesn't favour anyone.</p>
+        <p><b>Combining:</b> <a href="https://en.wikipedia.org/wiki/Standard_score" target="_blank" rel="noopener">z-scores ↗</a>
+          (or <a href="https://en.wikipedia.org/wiki/Borda_count" target="_blank" rel="noopener">Borda ranks ↗</a>), weighted.
+          <b>Uncertainty:</b> a <a href="https://en.wikipedia.org/wiki/Bootstrapping_(statistics)" target="_blank" rel="noopener">bootstrap ↗</a>
+          redraws every matchup record 60 times.</p>
+        <p><b>Limitation:</b> because matchmaking pairs equal ratings, head-to-head win rates stay close to 50% and understate how far apart characters are.</p>
+      </div>
+    </div>
+
+    <div class="view-head">
+      <p class="view-summary" id="bestSummary">Loading…</p>
+      <button type="button" class="btn" id="bestTuneBtn" aria-expanded="false">Tune ▾</button>
+    </div>
+
+    <div class="tune" id="bestTune" hidden>
+      <div class="tune-grid">
+        <div class="tune-group" data-for="meta">
+          <h3>Weights</h3>
+          <label class="range"><span class="lbl-row"><span>Top win rate</span><span class="val" id="mwWVal"></span></span>
+            <input type="range" id="mwW" min="0" max="1" step="0.05" value="1" /></label>
+          <label class="range"><span class="lbl-row"><span>Top pick rate</span><span class="val" id="mwPVal"></span></span>
+            <input type="range" id="mwP" min="0" max="1" step="0.05" value="1" /></label>
+          <label class="range"><span class="lbl-row"><span>Climb lift</span><span class="val" id="mwLVal"></span></span>
+            <input type="range" id="mwL" min="0" max="1" step="0.05" value="0.75" /></label>
+        </div>
+        <div class="tune-group" data-for="meta">
+          <h3>Data</h3>
+          <label>"Top" means <select id="mTop">
+            <option value="33">GoD IV and up</option>
+            <option value="29" selected>GoD and up</option>
+            <option value="25">Tekken King and up</option>
+          </select></label>
+          <p class="hint">Mid ranks for climb lift: Garyu – Bushin. Latest patch, all regions.</p>
+        </div>
+
+        <div class="tune-group" data-for="consensus" hidden>
+          <h3>Weights</h3>
+          <label class="range"><span class="lbl-row"><span>Intrinsic</span><span class="val" id="bwIVal"></span></span>
+            <input type="range" id="bwI" min="0" max="1" step="0.05" value="0.4" /></label>
+          <label class="range"><span class="lbl-row"><span>Competitive (Nash)</span><span class="val" id="bwCVal"></span></span>
+            <input type="range" id="bwC" min="0" max="1" step="0.05" value="0.4" /></label>
+          <label class="range"><span class="lbl-row"><span>Practical</span><span class="val" id="bwPVal"></span></span>
+            <input type="range" id="bwP" min="0" max="1" step="0.05" value="0.2" /></label>
+          <label>Combine as <select id="bMode">
+            <option value="z">z-scores</option>
+            <option value="borda">Ranks (Borda)</option>
+          </select></label>
+          <label class="range"><span class="lbl-row"><span>Shrinkage k</span><span class="val" id="bKVal"></span></span>
+            <input type="range" id="bK" min="0" max="300" step="10" value="100" /></label>
+        </div>
+        <div class="tune-group" data-for="consensus" hidden>
+          <h3>Data</h3>
+          <label>Ranks <select id="bRanks">
+            <option value="auto">Auto (highest with enough data)</option>
+            <option value="33">GoD IV and up</option>
+            <option value="29">GoD and up</option>
+            <option value="25">Tekken King and up</option>
+            <option value="21">Fujin and up</option>
+            <option value="0">All ranks</option>
+          </select></label>
+          <label>Patch <select id="bScope">
+            <option value="auto">Auto (latest if enough data)</option>
+            <option value="patch">Latest patch only</option>
+            <option value="season">Whole season</option>
+          </select></label>
+        </div>
+
+        <div class="tune-group">
+          <h3>Tiers</h3>
+          <label>Tier cut <select id="bCut">
+            <option value="jenks">Natural breaks (auto count)</option>
+            <option value="overlap">Ranges overlap</option>
+          </select></label>
+          <label id="bTiersWrap">Tier count <select id="bTiers">
+            <option value="auto">Auto (fewest that fit well)</option>
+            <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option>
+          </select></label>
+          <button type="button" class="btn subtle" id="bReset">Reset to defaults</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="bestList" class="tierlist"></div>
+
+    <div class="drawer-buttons">
+      <button type="button" class="btn" data-drawer="bestDetails" aria-expanded="false">Details and confidence ▾</button>
+    </div>
+    <div class="drawer" id="bestDetails" hidden>
+      <p class="hint" id="bestDetailsHint"></p>
+      <div class="tablewrap"><table id="bestTable"></table></div>
+    </div>
+  </section>
+
+  <!-- ================= Explorer ================= -->
+  <section id="tab-explore" class="tab-panel" hidden>
+    <div class="view-head">
+      <div class="view-main">
+          <label class="method-pick"><span>Method</span> <select id="method">
+            <optgroup label="ewgf win + pick rates">
+              <option value="composite">Composite (win + pick)</option>
+              <option value="wilson">Wilson lower bound</option>
+              <option value="bayes">Bayesian shrunk win rate</option>
+              <option value="winrate">Raw win rate</option>
+            </optgroup>
+            <optgroup label="Versus (collected matchups)">
+              <option value="vsNash">Nash equilibrium</option>
+              <option value="vsBT">Bradley–Terry strength</option>
+              <option value="vsUniform">Average matchup</option>
+              <option value="vsField">Win rate vs actual field</option>
+            </optgroup>
+          </select></label>
+        <p class="desc" id="methodDesc"></p>
+        <p class="view-summary" id="status">Loading…</p>
+      </div>
+      <button type="button" class="btn settings-toggle" id="settingsToggle" aria-expanded="false">Settings ▾</button>
+    </div>
+    <div class="explore">
+      <aside class="controls" id="controls">
+        <div class="seg side-tabs" role="tablist" aria-label="Settings sections">
+          <button type="button" role="tab" data-pane="data">Data</button>
+          <button type="button" role="tab" data-pane="scoring">Scoring</button>
+          <button type="button" role="tab" data-pane="tiers">Tiers</button>
+        </div>
+        <fieldset data-pane-id="data">
+          <legend>Data</legend>
+          <label>Patch <select id="version"></select></label>
+          <div class="field">
+            <span class="lbl">Regions</span>
+            <div id="regions" class="chips"></div>
+          </div>
+          <div class="field">
+            <span class="lbl">Ranks</span>
+            <select id="rankLo" aria-label="Lowest rank"></select>
+            <select id="rankHi" aria-label="Highest rank"></select>
+            <div class="seg" id="rankPresets"></div>
+          </div>
+          <label class="range"><span class="lbl-row"><span>Min games</span><span class="val" id="minGamesVal"></span></span>
+            <input type="range" id="minGames" min="0" max="2000" step="50" value="200" /></label>
+          <label class="check"><input type="checkbox" id="mirror" /> Mirror-match correction</label>
+          <label>Rank standardization <select id="rankStd">
+            <option value="auto">Auto (from Tekken King up)</option>
+            <option value="on">On</option>
+            <option value="off">Off</option>
+          </select></label>
+          <p class="hint">Win rates differ a lot between ranks near the top (49% at GoD, 74% at GoD VII). Standardizing compares each character to the average of its own rank.</p>
+          <label>Matchup data <select id="muScope">
+            <option value="patch">Selected patch</option>
+            <option value="season">Whole season</option>
+          </select></label>
+        </fieldset>
+
+        <fieldset data-pane-id="scoring">
+          <legend>Scoring</legend>
+          <p class="hint">Options for the method picked above the tier list.</p>
+          <p class="hint" id="noOpts">This method has no options.</p>
+
+          <div id="compositeOpts">
+            <label>Win metric <select id="winBase">
+              <option value="wilson">Wilson lower bound</option>
+              <option value="bayes">Bayesian shrunk</option>
+              <option value="winrate">Raw</option>
+            </select></label>
+            <label>Normalize <select id="norm">
+              <option value="rank">Percentile rank</option>
+              <option value="minmax">Min–max (keeps gaps)</option>
+            </select></label>
+            <label class="range"><span class="lbl-row"><span>Win weight A</span><span class="val" id="wAVal"></span></span><input type="range" id="wA" min="0" max="1" step="0.05" value="0.5" /></label>
+            <label class="range"><span class="lbl-row"><span>Pick weight B</span><span class="val" id="wBVal"></span></span><input type="range" id="wB" min="0" max="1" step="0.05" value="0.3" /></label>
+            <label class="range"><span class="lbl-row"><span>Win×Pick weight C</span><span class="val" id="wCVal"></span></span><input type="range" id="wC" min="0" max="1" step="0.05" value="0.2" /></label>
+          </div>
+          <div id="wilsonOpts">
+            <label>Confidence <select id="z">
+              <option value="1.2816">80%</option>
+              <option value="1.6449">90%</option>
+              <option value="1.96" selected>95%</option>
+              <option value="2.5758">99%</option>
+            </select></label>
+          </div>
+          <div id="versusOpts">
+            <label class="range"><span class="lbl-row"><span>Matchup prior</span><span class="val" id="muPriorVal"></span></span>
+              <input type="range" id="muPrior" min="0" max="200" step="5" value="20" /></label>
+            <p class="more">Pseudo-games at 50% added to every matchup so tiny samples can't read as 100% / 0%.</p>
+          </div>
+          <div id="bayesOpts">
+            <label class="range"><span class="lbl-row"><span>Prior strength</span><span class="val" id="priorVal"></span></span>
+              <input type="range" id="prior" min="0" max="5000" step="50" value="0" /></label>
+            <p class="more">0 = auto (estimated from how much win rates actually vary).</p>
+          </div>
+        </fieldset>
+
+        <fieldset data-pane-id="tiers">
+          <legend>Tiers</legend>
+          <label>Cut method <select id="cut">
+            <option value="jenks" selected>Natural breaks (gaps)</option>
+            <option value="quantile">Bell-curve quantiles</option>
+            <option value="sd">Standard-deviation bands</option>
+            <option value="overlap">Statistical ties (CI overlap)</option>
+          </select></label>
+          <p class="desc" id="cutDesc"></p>
+          <label class="range" id="tierCountWrap"><span class="lbl-row"><span>Tiers</span><span class="val" id="tiersVal"></span></span>
+            <input type="range" id="tiers" min="3" max="7" step="1" value="5" /></label>
+        </fieldset>
+      </aside>
+
+      <div class="results">
+        <div class="explain-card more" id="explainCard">
+          <p><b id="methodName"></b>: <span id="methodMore"></span></p>
+          <p><b>Tiers, <span id="cutName"></span></b>: <span id="cutMore"></span></p>
+        </div>
+        <div id="tierlist" class="tierlist"></div>
+        <div class="drawer-buttons">
+          <button type="button" class="btn" data-drawer="tableDrawer" aria-expanded="false">Full table ▾</button>
+          <button type="button" class="btn" data-drawer="muSection" aria-expanded="false">Matchup chart ▾</button>
+        </div>
+        <div class="drawer" id="tableDrawer" hidden>
+          <div class="tablewrap"><table id="table"></table></div>
+        </div>
+        <div class="drawer" id="muSection" hidden>
+          <div class="mu-head">
+            <p class="hint" id="muStatus">Loading…</p>
+            <label class="inline">Min games per cell
+              <select id="muMin"><option>10</option><option selected>30</option><option>100</option><option>300</option></select>
+            </label>
+          </div>
+          <p class="hint">Row character's win rate against the column character, using the same region and rank filters.
+            A match counts if either player is in the rank range. Order follows the tier list.
+            <span class="legend"><i style="background:hsl(0 60% 28%)"></i>40% <i style="background:#3a3431"></i>50% <i style="background:hsl(130 60% 28%)"></i>60%+</span></p>
+          <div class="tablewrap"><table id="mu" class="mu"></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p class="support">Like the site? You can support it on <a href="https://ko-fi.com/mulkmulkmulk" target="_blank" rel="noopener">Ko-fi ☕</a></p>
+    <p>Data: <a href="https://ewgf.gg/statistics" target="_blank" rel="noopener">ewgf.gg</a> character stats ·
+      every ranked match via <a href="https://wank.wavu.wiki" target="_blank" rel="noopener">Wavu Wank</a> · personal project</p>
+  </footer>
+
+  <div id="tip" class="tip" hidden></div>
+  <script src="config.js"></script>
+  <script src="data.js"></script>
+  <script src="ranks.js"></script>
+  <script src="stats.js"></script>
+  <script src="consensus.js"></script>
+  <script src="metasignals.js"></script>
+  <script src="app.js"></script>
+  <script src="best.js"></script>
+</body>
+</html>

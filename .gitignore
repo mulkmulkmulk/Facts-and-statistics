@@ -1,0 +1,7 @@
+# Local data (large; the public site's data lives in the data-state release)
+data/
+cache/
+state/
+dist/
+backups/
+node_modules/
