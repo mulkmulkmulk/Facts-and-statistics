@@ -159,6 +159,10 @@ function site() {
   fs.cpSync(path.join(ROOT, 'public'), DIST, { recursive: true });
   fs.writeFileSync(path.join(DIST, 'config.js'), "// Built static site: data comes from data/*.json.\nwindow.SITE_MODE = 'static';\n");
   fs.writeFileSync(path.join(DIST, '.nojekyll'), '');
+  // Pages lets browsers cache files for 10 min; a build stamp on the CSS/JS links makes updates show at once.
+  const stamp = Date.now().toString(36);
+  const indexFile = path.join(DIST, 'index.html');
+  fs.writeFileSync(indexFile, fs.readFileSync(indexFile, 'utf8').replace(/(src|href)="([\w-]+\.(?:js|css))"/g, `$1="$2?v=${stamp}"`));
   const data = path.join(DIST, 'data');
   fs.mkdirSync(data);
 
