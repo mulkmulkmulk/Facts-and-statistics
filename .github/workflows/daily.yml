@@ -1,5 +1,7 @@
-# Daily rebuild of the static site: fetch new ewgf stats + Wavu matches, rebuild data/*.json, deploy Pages.
-# Running state (matchup totals, cursor) lives in the "data-state" release's assets, not in git history.
+# Daily rebuild of the static site: fetch new Wavu matches (+ ewgf stats when reachable), rebuild
+# data/*.json, deploy Pages. Running state (matchup totals, cursor) lives in the "data-state" release's
+# assets, not in git history. Two jobs, as in GitHub's Pages template: the data update never waits on
+# the Pages deployment gate.
 name: Daily data update
 
 on:
@@ -21,9 +23,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,10 +58,17 @@ jobs:
         with:
           path: dist
 
-      - id: deploy
-        uses: actions/deploy-pages@v4
-
       - name: Keep the schedule alive
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow enable daily.yml
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
