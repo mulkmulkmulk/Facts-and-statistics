@@ -512,7 +512,9 @@ async function init() {
   $('settingsToggle').addEventListener('click', () => {
     const open = !$('controls').classList.contains('open');
     $('controls').classList.toggle('open', open);
+    $('controls').parentElement.classList.toggle('settings-open', open);
     $('settingsToggle').setAttribute('aria-expanded', open);
+    $('settingsToggle').textContent = open ? 'Settings ▴' : 'Settings ▾';
   });
   $('explain').checked = recall('explain') === '1';
   document.body.classList.toggle('explain', $('explain').checked);
