@@ -105,7 +105,7 @@ async function renderBest() {
 }
 
 async function renderMeta(s, run) {
-  $('bestSummary').textContent = 'Loading ewgf stats…';
+  $('bestSummary').textContent = 'Loading stats…';
   const [latest, prev] = await Promise.all([bestStats(bestLatest), bestPrev ? bestStats(bestPrev).catch(() => null) : null]);
   if (run !== bestRun) return;
   const model = metaModel(latest, prev, {

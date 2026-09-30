@@ -341,7 +341,7 @@ function renderTable(rows, lowData, s, versus) {
 
 function renderVersusTable(rows, lowData, s) {
   const nash = s.method === 'vsNash';
-  const head = ['#', 'Tier', 'Character', 'Collected games', 'Pick (ewgf)', 'Win rate (ewgf)', nash ? 'Nash mix' : null, 'Score'].filter(Boolean);
+  const head = ['#', 'Tier', 'Character', 'Collected games', 'Pick (all ranked)', 'Win rate (all ranked)', nash ? 'Nash mix' : null, 'Score'].filter(Boolean);
   const cells = (c) => `<td>${c.name}</td><td class="n">${c.vsGames.toLocaleString()}</td><td class="n">${pct(c.share * 2)}</td><td class="n">${pct(c.wr, 2)}</td>`;
   const body = rows.map((c, i) => `<tr><td>${i + 1}</td><td>${tierBadge(c.tier)}</td>
     ${cells(c)}${nash ? `<td class="n">${c.nash ? pct(c.nash, 1) : '–'}</td>` : ''}
@@ -541,8 +541,8 @@ async function init() {
     api('/api/characters').then(setAutoReleases).catch(() => {}),
   ]);
   try {
-    const { versions, latest, fetchedAt } = await api('/api/versions');
-    $('srcEwgf').textContent = `patch ${formatVersion(latest)} · updated ${ago(fetchedAt)}`;
+    const { versions, latest, fetchedAt, source } = await api('/api/versions');
+    $('srcEwgf').textContent = `patch ${formatVersion(latest)} · ${source || 'ewgf.gg'} · updated ${ago(fetchedAt)}`;
     $('version').innerHTML = versions.map((v) => `<option value="${v}">${formatVersion(v)}${v === latest ? ' (latest)' : ''}</option>`).join('');
     $('version').value = saved.version && versions.includes(+saved.version) ? saved.version : latest;
     resolveReady({ latest, versions });

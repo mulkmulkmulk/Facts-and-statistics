@@ -13,8 +13,8 @@
       <p class="sub">Tier lists from real ranked data, not opinions.</p>
     </div>
     <div class="sources">
-      <div class="src"><span class="src-name">ewgf.gg</span><span id="srcEwgf">loading…</span>
-        <button id="refresh" class="icon-btn" type="button" title="Fetch fresh stats from ewgf.gg now">↻</button></div>
+      <div class="src"><span class="src-name">Stats</span><span id="srcEwgf">loading…</span>
+        <button id="refresh" class="icon-btn" type="button" title="Fetch fresh stats now">↻</button></div>
       <div class="src"><span class="src-name">Matchups</span><span id="srcMu">loading…</span></div>
     </div>
   </header>
@@ -40,7 +40,7 @@
     <div class="intro" data-for="meta">
       <h2>Who wins, and who the best players choose</h2>
       <p class="lead">Tekken rates every character separately and matches equal ratings, so win rates get squeezed toward 50%.
-        Character strength also shows in <i>who ends up at the top</i>. This model combines three signals from every ranked match on ewgf.gg.</p>
+        Character strength also shows in <i>who ends up at the top</i>. This model combines three signals from every ranked match.</p>
       <div class="more">
         <ol class="steps">
           <li><b>Top win rate</b>: win rate at the top ranks, pulled toward average by 500 pseudo-games so small samples can't swing it.
@@ -176,7 +176,7 @@
     <div class="view-head">
       <div class="view-main">
           <label class="method-pick"><span>Method</span> <select id="method">
-            <optgroup label="ewgf win + pick rates">
+            <optgroup label="Win + pick rates">
               <option value="composite">Composite (win + pick)</option>
               <option value="wilson">Wilson lower bound</option>
               <option value="bayes">Bayesian shrunk win rate</option>
@@ -313,8 +313,8 @@
 
   <footer class="foot">
     <p class="support">Like the site? You can support it on <a href="https://ko-fi.com/mulkmulkmulk" target="_blank" rel="noopener">Ko-fi ☕</a></p>
-    <p>Data: <a href="https://ewgf.gg/statistics" target="_blank" rel="noopener">ewgf.gg</a> character stats ·
-      every ranked match via <a href="https://wank.wavu.wiki" target="_blank" rel="noopener">Wavu Wank</a> · personal project</p>
+    <p>Data: every ranked match via <a href="https://wank.wavu.wiki" target="_blank" rel="noopener">Wavu Wank</a> ·
+      character stats and patch history from <a href="https://ewgf.gg/statistics" target="_blank" rel="noopener">ewgf.gg</a> · non-profit project</p>
   </footer>
 
   <div id="tip" class="tip" hidden></div>
