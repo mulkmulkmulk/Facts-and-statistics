@@ -5,8 +5,11 @@
 name: Daily data update
 
 on:
+  # Twice a day: GitHub may delay or drop scheduled runs when busy, and each run catches up on everything
+  # since the last one, so a missed run costs nothing.
   schedule:
-    - cron: '17 4 * * *' # 04:17 UTC daily
+    - cron: '17 4 * * *'
+    - cron: '47 16 * * *'
   push:
     branches: [main] # code changes go live without waiting for the daily run
   workflow_dispatch:
