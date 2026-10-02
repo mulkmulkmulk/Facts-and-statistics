@@ -28,20 +28,20 @@ const rangeSum = (a, lo, hi) => { let s = 0; for (let i = lo; i <= hi; i++) s +=
 
 // Raw signals per character for one slice of data.
 // `standardize`: compare the top win rate to each top rank's own average (see standardizeByRank).
-function metaSignals(stats, regions, topLo, standardize = true) {
+function metaSignals(stats, regions, topLo, standardize = true, midRanks = MID_RANKS) {
   const c = rankGames(stats, regions);
   const names = Object.keys(c);
   const topHi = RANKS.length - 1;
   let tTop = 0, tMid = 0, wTop = 0;
   const rankG = new Float64Array(RANKS.length), rankW = new Float64Array(RANKS.length);
   for (const n of names) {
-    tTop += rangeSum(c[n].g, topLo, topHi); tMid += rangeSum(c[n].g, ...MID_RANKS); wTop += rangeSum(c[n].w, topLo, topHi);
+    tTop += rangeSum(c[n].g, topLo, topHi); tMid += rangeSum(c[n].g, ...midRanks); wTop += rangeSum(c[n].w, topLo, topHi);
     for (let r = topLo; r <= topHi; r++) { rankG[r] += c[n].g[r]; rankW[r] += c[n].w[r]; }
   }
   const avgWin = tTop ? wTop / tTop : 0.5;
   return names.map((name) => {
     const g = c[name].g, w = c[name].w;
-    const gTop = rangeSum(g, topLo, topHi), gMid = rangeSum(g, ...MID_RANKS);
+    const gTop = rangeSum(g, topLo, topHi), gMid = rangeSum(g, ...midRanks);
     const shareTop = gTop / tTop, shareMid = gMid / tMid;
     let winsTop = rangeSum(w, topLo, topHi);
     if (standardize && gTop) {
@@ -94,9 +94,9 @@ function spearmanByName(a, b) {
 // Full model: score on all regions of the latest patch, plus the same model re-run on independent
 // slices (each big region, the rest of the world, the previous patch) to show how stable each
 // character's position is and how well independent halves agree.
-function metaModel(latestStats, prevStats, { topLo = 29, weights = { winTop: 1, pickTop: 1, lift: 1 } } = {}) {
+function metaModel(latestStats, prevStats, { topLo = 29, midRanks = MID_RANKS, weights = { winTop: 1, pickTop: 1, lift: 1 } } = {}) {
   const ALL = Object.keys(latestStats);
-  const run = (stats, regions) => metaScore(metaSignals(stats, regions, topLo), weights);
+  const run = (stats, regions) => metaScore(metaSignals(stats, regions, topLo, true, midRanks), weights);
   const rows = run(latestStats, ALL).sort((a, b) => b.score - a.score);
 
   const others = ALL.filter((r) => !['Asia', 'Americas', 'Europe'].includes(r));

@@ -12,8 +12,8 @@ const RANKS = [
 
 const RANK_PRESETS = [
   { short: 'All', label: 'All ranks', lo: 'Beginner', hi: 'God of Destruction Infinity' },
-  { short: 'Blue', label: 'Blue ranks (Garyu – Battle Ruler)', lo: 'Garyu', hi: 'Battle Ruler' },
-  { short: 'Purple', label: 'Purple ranks (Fujin – Bushin)', lo: 'Fujin', hi: 'Bushin' },
+  { short: 'Purple', label: 'Purple ranks (Garyu – Battle Ruler)', lo: 'Garyu', hi: 'Battle Ruler' },
+  { short: 'Blue', label: 'Blue ranks (Fujin – Bushin)', lo: 'Fujin', hi: 'Bushin' },
   { short: 'TK+', label: 'Tekken King and up', lo: 'Tekken King', hi: 'God of Destruction Infinity' },
   { short: 'GoD+', label: 'God of Destruction and up', lo: 'God of Destruction', hi: 'God of Destruction Infinity' },
   { short: 'GoD4+', label: 'God of Destruction IV and up', lo: 'God of Destruction IV', hi: 'God of Destruction Infinity' },
