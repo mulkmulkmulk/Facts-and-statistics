@@ -5,3 +5,4 @@ state/
 dist/
 backups/
 node_modules/
+analysis/data/
